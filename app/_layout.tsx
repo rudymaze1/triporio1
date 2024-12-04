@@ -5,9 +5,10 @@ export default function RootLayout() {
   return (
   <AuthProvider>
   <Stack>
-    <Stack.Screen name="index" options={{headerShown:true, }}/>
-    <Stack.Screen name="(auth)/Login" options={{title:"login"}}/>
-    <Stack.Screen name="(auth)/register" options={{title:"register"}}/>
+    <Stack.Screen name="index" options={{headerShown:false, }}/>
+    <Stack.Screen name="(auth)/Login" options={{title:"login", headerShown:false}}/>
+    <Stack.Screen name="(auth)/register" options={{title:"register", headerShown:false}}/>
+    <Stack.Screen name="(tabs)/[home]" options={{title:"register", headerShown:false}}/>
   </Stack>
 </AuthProvider>)
 }

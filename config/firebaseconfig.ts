@@ -2,9 +2,9 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from "firebase/firestore";
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your Firebase web configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAa4cduE15kqd-P5iNABKGqsW84YCXKokc",
   authDomain: "triporio-7ed45.firebaseapp.com",
@@ -15,8 +15,14 @@ const firebaseConfig = {
   measurementId: "G-J80SDCSE2V"
 };
 
-// Initialize Firebase
+// Initialize Firebase app
 const FIREBASE_APP = initializeApp(firebaseConfig);
+
+// // Configure Google Sign-In with the webClientId from Firebase
+// GoogleSignin.configure({
+//   webClientId: '713503670134-5njr18o1mb3hch82ortn2s3c12jt7c9o.apps.googleusercontent.com', // Ensure this is correct
+//   offlineAccess: true,  // Optional: Allow offline access to user's Google account
+// });
 
 // Initialize Firestore
 const FIREBASE_DB = getFirestore(FIREBASE_APP);
