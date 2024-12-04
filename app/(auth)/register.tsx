@@ -14,7 +14,6 @@ const Registration = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
   const navigation = useNavigation();
 
   const handleRegister = async () => {
@@ -37,6 +36,8 @@ const Registration = () => {
       console.error("Error registering user:", error);
       alert("Error registering. Please try again.");
     }
+    
+    
   };
 
   return (

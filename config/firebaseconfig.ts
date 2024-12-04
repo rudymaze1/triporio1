@@ -14,17 +14,8 @@ const firebaseConfig = {
   appId: "1:713503670134:web:062b6bc81cab0d2e474457",
   measurementId: "G-J80SDCSE2V"
 };
-
-// Initialize Firebase app
+const app = initializeApp(firebaseConfig);
 const FIREBASE_APP = initializeApp(firebaseConfig);
-
-// // Configure Google Sign-In with the webClientId from Firebase
-// GoogleSignin.configure({
-//   webClientId: '713503670134-5njr18o1mb3hch82ortn2s3c12jt7c9o.apps.googleusercontent.com', // Ensure this is correct
-//   offlineAccess: true,  // Optional: Allow offline access to user's Google account
-// });
-
-// Initialize Firestore
 const FIREBASE_DB = getFirestore(FIREBASE_APP);
 
 // Initialize Firebase Auth with AsyncStorage for persistence
