@@ -134,7 +134,7 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      router.replace("/(tabs)/Home");
+      router.replace("/[home]");
       console.log("Login successful");
     } catch (error) {
       console.error("Error logging in", error);
