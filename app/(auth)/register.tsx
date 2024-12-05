@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { FIREBASE_AUTH } from "@/config/firebaseconfig";  
+import { FIREBASE_AUTH } from "@/config/firebaseconfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from 'expo-router';
+import { getFirestore, doc, setDoc } from "firebase/firestore"; // Import Firestore functions
 
 const Registration = () => {
   const [Username, setUsername] = useState("");
@@ -15,6 +16,7 @@ const Registration = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const navigation = useNavigation();
+  const db = getFirestore(); // Initialize Firestore
 
   const handleRegister = async () => {
     if (email !== confirmEmail) {
@@ -27,17 +29,28 @@ const Registration = () => {
       return;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
-      // Call Firebase to create a new user
-      await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
+      const userCredential = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
+      const user = userCredential.user;
+
+      // Save user details to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username: Username,
+        email: email,
+        uid: user.uid,
+      });
+
       console.log("User registered successfully:", Username, email);
-      router.replace("/Login")
+      router.replace("/Login");
     } catch (error) {
       console.error("Error registering user:", error);
-      alert("Error registering. Please try again.");
+      setError("Error registering. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    
   };
 
   return (
@@ -110,15 +123,15 @@ const Registration = () => {
       </TouchableOpacity>
 
       <Image
-        source={require("../../assets/images/Trip.png")} 
-        style={styles.triplogo} 
+        source={require("../../assets/images/Trip.png")}
+        style={styles.triplogo}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+    container: {
     flex: 1,
     justifyContent: 'center',
     padding: 20,
@@ -181,6 +194,8 @@ position:"absolute",
   resizeMode: 'contain',  // Ensures the image fits inside without distortion
   borderRadius: 15, 
   },
+
 });
 
 export default Registration;
+
