@@ -15,7 +15,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { doc, getDoc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Timestamp } from 'firebase/firestore';
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
@@ -24,9 +26,35 @@ const Home = () => {
   const [upcomingTripImage, setUpcomingTripImage] = useState<string | null>(null);
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
   const [tripName, setTripName] = useState<string>('');
+  const [trips, setTrips] = useState<any[]>([]);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState({ start: false, end: false });
   const navigation = useNavigation();
   const db = getFirestore();
   const helloTranslations = ['Hello', 'Hola', 'Bonjour', 'Ciao', 'Hallo', 'こんにちは', '안녕하세요', 'Olá'];
+
+  
+
+  const toggleDatePicker = (type: 'start' | 'end') => {
+    setShowDatePicker(prev => ({
+      ...prev,
+      [type]: !prev[type],
+    }));
+  };
+
+  // Handle date change for start and end dates
+  const handleDateChange = (type: 'start' | 'end', date: Date | undefined) => {
+    if (type === 'start') {
+      setStartDate(date || startDate);
+    } else {
+      setEndDate(date || endDate);
+    }
+    setShowDatePicker(prev => ({
+      ...prev,
+      [type]: false,
+    }));
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (currentUser) => {
@@ -62,14 +90,48 @@ const Home = () => {
     })();
   }, []);
 
-  const fetchTripData = async (userId: string) => {
-    const docRef = doc(db, 'users', userId);
-    const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-      setUpcomingTripImage(docSnap.data().upcomingTripImage);
+
+  const fetchTripData = async (userId: string) => {
+    try {
+      // Fetch trips collection
+      const tripsRef = collection(db, 'users', userId, 'trips');
+      const querySnapshot = await getDocs(tripsRef);
+  
+      // Map trips to an array and sort by creation date (latest first)
+      const tripsList = querySnapshot.docs
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt || new Date(0), // Default to epoch if createdAt is missing
+          };
+        })
+        .sort((a, b) => {
+          const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
+          const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime(); // Sort descending by time
+        });
+  
+      setTrips(tripsList);
+  
+      // Fetch upcomingTripImage
+      const userDocRef = doc(db, 'users', userId);
+      const userDocSnap = await getDoc(userDocRef);
+  
+      if (userDocSnap.exists()) {
+        setUpcomingTripImage(userDocSnap.data().upcomingTripImage);
+      }
+    } catch (error) {
+      console.error('Error fetching trips:', error);
+      Alert.alert('Error', 'Failed to fetch trips.');
     }
   };
+  
+  
+  
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -97,15 +159,45 @@ const Home = () => {
   };
 
   const toggleModal = () => {
+    if (!isModalVisible) {
+      setShowDatePicker({ start: true, end: true }); // Show both start and end date pickers when the modal opens
+    } else {
+      setShowDatePicker({ start: false, end: false });
+    }
     setModalVisible(!isModalVisible);
   };
 
-  const handleSaveTrip = () => {
-    Alert.alert('Trip Added', `Trip Name: ${tripName}`);
-    setTripName('');
-    toggleModal();
-  };
+  const handleSaveTrip = async () => {
+    if (!tripName || !startDate || !endDate) {
+      Alert.alert('Error', 'Please fill all the fields!');
+      return;
+    }
   
+    try {
+      if (user) {
+        const newTripRef = collection(db, 'users', user.uid, 'trips');
+        await addDoc(newTripRef, {
+          name: tripName,
+          image: upcomingTripImage || '',
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          createdAt: new Date(),
+        });
+        console.log('Trip saved successfully');
+        fetchTripData(user.uid); // Refresh trip data after saving
+        setTripName('');
+        setStartDate(new Date());
+        setEndDate(new Date());
+        toggleModal();
+        Alert.alert('Success', 'Trip added successfully!');
+      } else {
+        Alert.alert('Error', 'User not authenticated.');
+      }
+    } catch (error) {
+      console.error('Error adding trip:', error);
+      Alert.alert('Error', 'Failed to add trip.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -116,7 +208,6 @@ const Home = () => {
         <Text style={styles.greeting}>{greeting}</Text>
       </View>
 
-      {/* Main Content */}
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.upcomingcontainer}>
           {upcomingTripImage ? (
@@ -134,13 +225,26 @@ const Home = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Past Trips Section */}
         <View style={styles.pasttripscontainer}>
-          <Text style={styles.subtitle}>Past Trips</Text>
+  <Text style={styles.subtitle}>Past Trips</Text>
+  <ScrollView contentContainerStyle={styles.tripList}>
+    {trips.length > 0 ? (
+      trips.map((trip, index) => (
+        <View key={index} style={styles.tripCard}>
+          <Text style={styles.tripCardText}>{trip.name}</Text>
+          <Text style={styles.tripDateText}>
+            {trip.startDate} - {trip.endDate}
+          </Text>
+          
         </View>
+      ))
+    ) : (
+      <Text>Add a trip to start the fun!</Text>
+    )}
+  </ScrollView>
+</View>
       </ScrollView>
 
-      {/* Add Trips Button */}
       <View style={styles.addtripscontainer}>
         <TouchableOpacity style={styles.addtripbutton} onPress={toggleModal}>
           <Image
@@ -150,185 +254,292 @@ const Home = () => {
         </TouchableOpacity>
       </View>
 
-
       <Modal visible={isModalVisible} animationType="slide" transparent>
-      <View style={styles.modalWrapper}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Add a New Trip</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Enter trip name"
-            value={tripName}
-            onChangeText={setTripName}
-          />
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveTrip}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleModal}>
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.modalWrapper}>
+          <View style={styles.closebutton}>
+            <TouchableOpacity onPress={toggleModal}>
+              <Ionicons name="close-circle" size={45} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Add a New Trip</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Enter Trip Name"
+              value={tripName}
+              onChangeText={setTripName}
+            />
+            <TouchableOpacity
+              onPress={() => toggleDatePicker('start')}
+            >
+              <Text style={styles.startdatetext} >Start Date: {startDate.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            {showDatePicker.start && (
+              <DateTimePicker
+              style={styles.datepickertext}
+                value={startDate}
+                mode="date"
+                display="default"
+                onChange={(event, date) => handleDateChange('start', date)}
+              />
+            )}
+            <TouchableOpacity
+              style={styles.enddatebuttontext}
+              onPress={() => toggleDatePicker('end')}
+            >
+              <Text style={styles.enddatetext}>End Date: {endDate.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            {showDatePicker.end && (
+              <DateTimePicker
+              style={styles.datepickertext}
+                value={endDate}
+                mode="date"
+                display="default"
+                onChange={(event, date) => handleDateChange('end', date)}
+              />
+            )}
+            <TouchableOpacity onPress={handleSaveTrip} style={styles.saveButton}>
+              <Text style={styles.saveButtonText}>Save Trip</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
   );
 };
 
+
 const styles = StyleSheet.create({
-  modalWrapper: {
-    left:"5%",
-    borderRadius:15,
-    top:"30%",
-    width:"90%",
-    backgroundColor: 'rgba(0, 0, 255, 0.3)', // Semi-transparent blue
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: "100%",
-    borderRadius: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5, // Adds a shadow on Android
-    shadowColor: 'red', // Shadow on iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  textInput: {
-    width: '100%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 20,
-    paddingLeft: 10,
-  },
-  saveButton: {
-    backgroundColor: 'green',
-    padding: 10,
-    borderRadius: 5,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-      Howtouse:{
-        fontWeight: "bold",
-        color: "grey",
-        textAlign: 'center',  // Center the text horizontally
+
+   enddatetext:{
+        fontWeight:"bold",
+    },
+    enddatebuttontext:{
+        padding: 12,
+        backgroundColor: '#f1f8e9',
+        borderRadius: 8,
+        alignItems: 'center',
+        right:"30%",
+
+    },
+    datepickertext:{
+        right:"35%",
+    },
+    dateIcon: {
+        padding: 10,
+        marginTop: 10,
+        alignItems: 'center',
+        justifyContent: 'center'
+
+    
+
+    },
+    startdatetext:{
+        right:"30%",
+        fontWeight:"bold",
+    },
+    closebutton:{
+        position:"fixed",
+        backgroundColor:"transparent",
+        bottom:"15%",
+        left:"40%",
+    },
+      tripDateText: {
+        top:"55%",
+        fontSize: 14,
+        color: 'grey',
       },
-      addbuttonimg:{
-        width: 80,   // Adjust size as needed
-        height: 80,
-        resizeMode: 'contain',
+    datePicker: {
+        width: 200,
+        marginBottom: 20,
       },
-      addtripscontainer:{
-        position:'absolute',
-        left:"75%",
-        width:"23%",
-        backgroundColor:"blue",
-        bottom:"2%",
-      },
-      addtripbutton:{
-        bottom:"10%",
-      },
-      instuction:{
-        fontWeight: "bold",
-        color: "lightgrey",
-      },
-      tripImage: {
-        width: "100%",
-        height: "110%",
+    tripList:{
+        backgroundColor:"transparent",
+        top:"2%",
+        
+        
+    },
+    tripCard: {
+        width:350,
+        borderRadius: 15,
+        height: 100,
         marginBottom: 10,
-        borderRadius: 0,
+        marginTop:5,
+        backgroundColor: '#222D51',
+        padding: 10,
+        borderWidth: 1,
       },
-      placeholderText: {
-        color: '#fff',
-        fontSize: 16,
-      }, container: {
-            flex: 1,
-          },
-          upcomingtext:{
-            bottom:"35%",
-            right:"30%",
-        
-        
-          },
-          profbutton:{
-            position:"absolute",
-            right:"10%",
-            bottom:0,
-        
-          },
-          header: {
-            left:"2%",
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-            paddingTop: 40,  
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            position: 'absolute',
-            top:"8%",
-            width: '25%',
-            zIndex: 1,  // Keep the header on top
-            height:40,
-            borderRadius:40,
-          },
-          scrollContainer: {
-            marginTop: 1,  // Ensure scroll starts below the fixed header
-            flex: 1,
-          },
-          pasttripscontainer: {
-            height: "160%", // Adjust based on content
-            marginVertical: 0,
-            backgroundColor: 'blue',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius:50,
-            bottom:"10%",
-            
-          },
-          upcomingcontainer: {
-            height: 410, 
-            marginVertical: 0,
-            backgroundColor: 'red',
-            justifyContent: 'center',
-            alignItems: 'center',
-          },
-          loadingContainer: {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#f2f2f2',
-          },
-          greeting: {
-            position:"absolute",
-            fontSize: 10,
-            fontWeight: 'bold',
-            color: '#333',
-            left:"80%",
-            top:15,
-          },
-          subtitle: {
-            right:"30%",
-            bottom:"45%",
-            fontSize: 18,
-            color: '#fff',
-          },
-          imagepick:{
-            left:"40%",
-            bottom:"25%",
-          },
+    tripCardText:{
+        fontSize:20,
+        color:"white",
+        fontWeight:'900',
+        top:"50%",
+    },
+    modalWrapper: {
+      left:"5%",
+      borderRadius:15,
+      top:"30%",
+      width:"90%",
+      backgroundColor: 'transparent', 
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContainer: {
+        bottom:50,
+      width: "100%",
+      borderRadius: 15,
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      padding: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 5, // Adds a shadow on Android
+      shadowColor: 'red', // Shadow on iOS
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 20,
+    },
+    textInput: {
+      width: '100%',
+      height: 40,
+      borderColor: 'gray',
+      borderWidth: 1,
+      borderRadius: 5,
+      marginBottom: 20,
+      paddingLeft: 10,
+    },
+    saveButton: {
+      backgroundColor: 'green',
+      padding: 10,
+      borderRadius: 5,
+    },
+    saveButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+    },
+        Howtouse:{
+          fontWeight: "bold",
+          color: "grey",
+          textAlign: 'center',  // Center the text horizontally
+        },
+        addbuttonimg:{
+          width: 80,   // Adjust size as needed
+          height: 80,
+          resizeMode: 'contain',
+        },
+        addtripscontainer:{
+          position:'absolute',
+          left:"75%",
+          width:"23%",
+          backgroundColor:"transparent",
+          bottom:"2%",
+        },
+        addtripbutton:{
+          bottom:"10%",
+        },
+        instuction:{
+          fontWeight: "bold",
+          color: "lightgrey",
+        },
+        tripImage: {
+          width: "100%",
+          height: "110%",
+          marginBottom: 10,
+          borderRadius: 0,
+        },
+        placeholderText: {
+          color: '#fff',
+          fontSize: 16,
+        }, container: {
+              flex: 1,
+            },
+            upcomingtext:{
+              bottom:"35%",
+              right:"30%",
+          
+          
+            },
+            profbutton:{
+              position:"absolute",
+              right:"10%",
+              bottom:0,
+          
+            },
+            header: {
+              left:"2%",
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: 20,
+              paddingTop: 40,  
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              position: 'absolute',
+              top:"8%",
+              width: '25%',
+              zIndex: 1,  // Keep the header on top
+              height:40,
+              borderRadius:40,
+            },
+            scrollContainer: {
+              marginTop: 1,  // Ensure scroll starts below the fixed header
+              flex: 1,
+            },
+            pasttripscontainer: {
+              height: "100%", 
+              marginVertical: 10,
+              backgroundColor: '#FAF9F9',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius:40,
+              paddingBottom:"25%",
+              bottom:"8%",
+              
+            },
+            upcomingcontainer: {
+             position:"fixed",
+              height: 450, 
+              marginVertical: 0,
+              backgroundColor: 'white',
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+            loadingContainer: {
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#f2f2f2',
+            },
+            greeting: {
+              position:"absolute",
+              fontSize: 10,
+              fontWeight: 'bold',
+              color: '#333',
+              left:"80%",
+              top:15,
+            },
+            subtitle: {
+                fontWeight:'bold',
+                top:"1%",
+              right:"30%",
+              position:"fixed",
+              fontSize: 18,
+              color: '##03045E',
+    
+            },
+            imagepick:{
+              left:"40%",
+              bottom:"50%",
+            },
+  
+  
+  });
+  
+  export default Home;
 
 
-});
 
-export default Home;
+

@@ -10,7 +10,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAa4cduE15kqd-P5iNABKGqsW84YCXKokc",
   authDomain: "triporio-7ed45.firebaseapp.com",
   projectId: "triporio-7ed45",
-  storageBucket: "triporio-7ed45.firebasestorage.app",
+  storageBucket: 'triporio-7ed45.appspot.com',
   messagingSenderId: "713503670134",
   appId: "1:713503670134:web:062b6bc81cab0d2e474457",
   measurementId: "G-J80SDCSE2V"
