@@ -21,6 +21,7 @@ import { Timestamp } from 'firebase/firestore';
 import Checkbox from 'expo-checkbox';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { Link, router, useRouter } from 'expo-router';
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
@@ -44,6 +45,11 @@ const Home = () => {
     'sulph-reg': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Regular.ttf' ),
     'sulph-light': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Light.ttf' )
 });
+const router = useRouter();
+
+const handelprofile = () => {
+    router.replace('/profile')
+}
 
   const handleCheckBoxChange = () => {
     setIsChecked(!isChecked);
@@ -233,7 +239,8 @@ const Home = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handelprofile}>
+            
           <Ionicons name="person-circle" size={40} color="lightblue" style={styles.profbutton} />
         </TouchableOpacity>
         <Text style={styles.greeting}>{greeting}</Text>

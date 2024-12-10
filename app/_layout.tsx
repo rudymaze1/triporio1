@@ -55,6 +55,8 @@ export default function RootLayout() {
           ),
         }}
       />
+      <Stack.Screen name="(root)/profile" options={{title:"register", headerShown:false}}/>
+
     </Stack>
 </AuthProvider>)
 }
