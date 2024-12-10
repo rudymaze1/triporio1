@@ -18,6 +18,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { doc, getDoc, setDoc, getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Timestamp } from 'firebase/firestore';
+import Checkbox from 'expo-checkbox';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
@@ -33,8 +36,26 @@ const Home = () => {
   const navigation = useNavigation();
   const db = getFirestore();
   const helloTranslations = ['Hello', 'Hola', 'Bonjour', 'Ciao', 'Hallo', 'こんにちは', '안녕하세요', 'Olá'];
+  const [isChecked, setIsChecked] = useState(false);
+  const [upcomingTripTitle, setUpcomingTripTitle] = useState<string | null>(null);
+  const [loaded, error] = useFonts({
+    'poiret': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/PoiretOne-Regular.ttf' ),
+    'sulph-bold': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Bold.ttf' ),
+    'sulph-reg': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Regular.ttf' ),
+    'sulph-light': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Light.ttf' )
+});
 
-  
+  const handleCheckBoxChange = () => {
+    setIsChecked(!isChecked);
+  };
+
+  const handleSubmit = () => {
+    if (isChecked) {
+      alert('Checkbox is checked');
+    } else {
+      alert('Checkbox is unchecked');
+    }
+  };
 
   const toggleDatePicker = (type: 'start' | 'end') => {
     setShowDatePicker(prev => ({
@@ -98,30 +119,30 @@ const Home = () => {
       const tripsRef = collection(db, 'users', userId, 'trips');
       const querySnapshot = await getDocs(tripsRef);
   
-      // Map trips to an array and sort by creation date (latest first)
       const tripsList = querySnapshot.docs
         .map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
-            createdAt: data.createdAt || new Date(0), // Default to epoch if createdAt is missing
+            createdAt: data.createdAt || new Date(0),
           };
         })
         .sort((a, b) => {
           const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toDate() : new Date(a.createdAt);
           const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toDate() : new Date(b.createdAt);
-          return dateB.getTime() - dateA.getTime(); // Sort descending by time
+          return dateB.getTime() - dateA.getTime();
         });
   
       setTrips(tripsList);
   
-      // Fetch upcomingTripImage
+      // Fetch upcomingTripImage and upcomingTripTitle
       const userDocRef = doc(db, 'users', userId);
       const userDocSnap = await getDoc(userDocRef);
   
       if (userDocSnap.exists()) {
         setUpcomingTripImage(userDocSnap.data().upcomingTripImage);
+        setUpcomingTripTitle(userDocSnap.data().upcomingTripTitle || null);
       }
     } catch (error) {
       console.error('Error fetching trips:', error);
@@ -183,11 +204,20 @@ const Home = () => {
           endDate: endDate.toISOString().split('T')[0],
           createdAt: new Date(),
         });
+  
+        // If the checkbox is checked, set this trip as the upcoming trip
+        if (isChecked) {
+          const userDocRef = doc(db, 'users', user.uid);
+          await setDoc(userDocRef, { upcomingTripTitle: tripName }, { merge: true });
+        }
+  
         console.log('Trip saved successfully');
         fetchTripData(user.uid); // Refresh trip data after saving
         setTripName('');
         setStartDate(new Date());
         setEndDate(new Date());
+        setUpcomingTripImage(null);
+        setIsChecked(false); // Reset the checkbox state
         toggleModal();
         Alert.alert('Success', 'Trip added successfully!');
       } else {
@@ -197,6 +227,7 @@ const Home = () => {
       console.error('Error adding trip:', error);
       Alert.alert('Error', 'Failed to add trip.');
     }
+  
   };
 
   return (
@@ -212,6 +243,7 @@ const Home = () => {
         <View style={styles.upcomingcontainer}>
           {upcomingTripImage ? (
             <Image source={{ uri: upcomingTripImage }} style={styles.tripImage} />
+            
           ) : (
             <View>
               <Text style={styles.Howtouse}>How to use?</Text>
@@ -220,9 +252,14 @@ const Home = () => {
               <Text style={styles.instuction}>3) Start planning!</Text>
             </View>
           )}
+          {upcomingTripTitle && (
+    <Text style={styles.upcomingtitle}>{upcomingTripTitle}</Text>
+  )}
+          <View> 
           <TouchableOpacity onPress={pickImage} style={styles.imagepick}>
-            <Ionicons name="images-outline" size={24} color="white" />
+            <Ionicons name="images-outline" size={24} color="lightblue" />
           </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.pasttripscontainer}>
@@ -263,6 +300,7 @@ const Home = () => {
           </View>
 
           <View style={styles.modalContainer}>
+            
             <Text style={styles.modalTitle}>Add a New Trip</Text>
             <TextInput
               style={styles.textInput}
@@ -270,6 +308,15 @@ const Home = () => {
               value={tripName}
               onChangeText={setTripName}
             />
+            <View style={styles.checkbox}>
+                <Checkbox value={isChecked} onValueChange={handleCheckBoxChange}/>
+                <Text style={styles.checkboxtext}>set as upcoming trip?</Text>
+                <TouchableOpacity onPress={pickImage} style={styles.imagepick2}>
+                <Ionicons name="images-outline" size={24} color="lightblue" />
+                </TouchableOpacity>
+            </View>
+            
+
             <TouchableOpacity
               onPress={() => toggleDatePicker('start')}
             >
@@ -311,7 +358,27 @@ const Home = () => {
 
 
 const styles = StyleSheet.create({
+    upcomingtitle:{
+        position:"absolute",
+        backgroundColor:"transparent",
+        fontSize:55,
+         bottom:200,
+         color:"white",
+         fontWeight:'bold',
+         fontFamily:"poiret",
 
+        },
+    checkboxtext:{
+        position:'fixed',
+        bottom:20,
+        left:30,
+        marginBottom:-10,
+    },
+    checkbox:{
+        position:"fixed", 
+        right: 90,
+        bottom:10
+    },
    enddatetext:{
         fontWeight:"bold",
     },
@@ -346,6 +413,7 @@ const styles = StyleSheet.create({
         left:"40%",
     },
       tripDateText: {
+        fontFamily:"sulph-light",
         top:"55%",
         fontSize: 14,
         color: 'grey',
@@ -357,8 +425,6 @@ const styles = StyleSheet.create({
     tripList:{
         backgroundColor:"transparent",
         top:"2%",
-        
-        
     },
     tripCard: {
         width:350,
@@ -371,6 +437,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
       },
     tripCardText:{
+        fontFamily:"sulph-bold",
         fontSize:20,
         color:"white",
         fontWeight:'900',
@@ -400,11 +467,13 @@ const styles = StyleSheet.create({
       shadowRadius: 4,
     },
     modalTitle: {
+      fontFamily:"sulph-bold",
       fontSize: 24,
       fontWeight: 'bold',
-      marginBottom: 20,
+      marginBottom: 10,
     },
     textInput: {
+    fontFamily:"sulph-bold",
       width: '100%',
       height: 40,
       borderColor: 'gray',
@@ -458,19 +527,19 @@ const styles = StyleSheet.create({
         }, container: {
               flex: 1,
             },
-            upcomingtext:{
+        upcomingtext:{
               bottom:"35%",
               right:"30%",
           
           
             },
-            profbutton:{
+        profbutton:{
               position:"absolute",
               right:"10%",
               bottom:0,
           
             },
-            header: {
+        header: {
               left:"2%",
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -484,22 +553,23 @@ const styles = StyleSheet.create({
               height:40,
               borderRadius:40,
             },
-            scrollContainer: {
-              marginTop: 1,  // Ensure scroll starts below the fixed header
+        scrollContainer: {
+              position:'fixed',
               flex: 1,
             },
-            pasttripscontainer: {
+        pasttripscontainer: {
               height: "100%", 
               marginVertical: 10,
-              backgroundColor: '#FAF9F9',
+              backgroundColor: 'white',
               justifyContent: 'center',
               alignItems: 'center',
-              borderRadius:40,
+              borderTopRightRadius:65,
               paddingBottom:"25%",
-              bottom:"8%",
+              bottom:50,
+              borderTopLeftRadius:0,
               
             },
-            upcomingcontainer: {
+        upcomingcontainer: {
              position:"fixed",
               height: 450, 
               marginVertical: 0,
@@ -507,13 +577,13 @@ const styles = StyleSheet.create({
               justifyContent: 'center',
               alignItems: 'center',
             },
-            loadingContainer: {
+        loadingContainer: {
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
               backgroundColor: '#f2f2f2',
             },
-            greeting: {
+        greeting: {
               position:"absolute",
               fontSize: 10,
               fontWeight: 'bold',
@@ -521,25 +591,29 @@ const styles = StyleSheet.create({
               left:"80%",
               top:15,
             },
-            subtitle: {
-                fontWeight:'bold',
-                top:"1%",
-              right:"30%",
+        subtitle: {
+            fontFamily:"sulph-reg",
+            top:5,
+            right:130,
               position:"fixed",
-              fontSize: 18,
+              fontSize: 24,
               color: '##03045E',
     
             },
-            imagepick:{
-              left:"40%",
-              bottom:"50%",
+        imagepick:{
+            position:"absolute",
+            left:130,
+            bottom:100,
+            },
+        imagepick2:{
+            position:'fixed',
+            left:290,
+            bottom:30,
+            marginBottom:-30,
             },
   
   
   });
   
   export default Home;
-
-
-
 
