@@ -341,42 +341,55 @@
 
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Define the DayGroup type
+type DayGroup = {
+  day: string;
+  activities: string[];
+};
+
 const TripName = () => {
   const { tripName } = useLocalSearchParams();
   const tripNameStr = Array.isArray(tripName) ? tripName[0] : tripName || 'Default Trip';
-  const [dayGroups, setDayGroups] = useState<{ day: string; activities: string[] }[]>([]);
+  const [dayGroups, setDayGroups] = useState<DayGroup[]>([{ day: 'Day 1', activities: [] }]);
   const [newActivity, setNewActivity] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
 
-
-  
-
+  // Load trip data from AsyncStorage when the component mounts
   useEffect(() => {
     const loadTripData = async () => {
       try {
         const storedData = await AsyncStorage.getItem(`trip_${tripNameStr}`);
         if (storedData) {
-          // If trip data exists, load it
           setDayGroups(JSON.parse(storedData));
-        } else {
-          // If no trip data exists, set a default "Day 1"
-          setDayGroups([{ day: 'Day 1', activities: [] }]);
         }
       } catch (error) {
         console.error('Failed to load trip data:', error);
       }
     };
-  
+
     loadTripData();
   }, [tripNameStr]);
+
+  // Save trip data to AsyncStorage whenever dayGroups changes
+  useEffect(() => {
+    const saveTripData = async () => {
+      try {
+        await AsyncStorage.setItem(`trip_${tripNameStr}`, JSON.stringify(dayGroups));
+      } catch (error) {
+        console.error('Failed to save trip data:', error);
+      }
+    };
+
+    saveTripData();
+  }, [dayGroups, tripNameStr]);
 
   // Handle adding activity to a specific day
   const handleAddActivity = useCallback(() => {
@@ -396,7 +409,7 @@ const TripName = () => {
   // Handle deleting a day
   const handleDeleteDay = useCallback((dayToDelete: string) => {
     const updatedGroups = dayGroups.filter((group) => group.day !== dayToDelete);
-    setDayGroups(updatedGroups);
+    setDayGroups(updatedGroups.length ? updatedGroups : [{ day: 'Day 1', activities: [] }]);
   }, [dayGroups]);
 
   // Handle adding a new day
