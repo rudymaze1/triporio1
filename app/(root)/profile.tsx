@@ -1,4 +1,4 @@
-import { Image, ScrollView, StyleSheet, Text, Touchable, TouchableOpacity, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, Text, Touchable, TouchableOpacity, View, Linking } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,6 +13,9 @@ const profileScreen= () => {
     'sulph-reg': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Regular.ttf' ),
     'sulph-light': require('/Users/rudy/Desktop/react-proj/triporio1/assets/fonts/SulphurPoint-Light.ttf' )
   });
+  const handleURL = () => {
+    Linking.openURL('https://triporio.godaddysites.com/policies');
+  };
   
 
 
@@ -55,6 +58,12 @@ const handellogout = () => {
           <TouchableOpacity style={styles.logoutbutton} onPress={handellogout}>
           <Text style={styles.logouttext}>Logout</Text>
           </TouchableOpacity>
+          <View style={{ top: 30, alignItems: 'center' }}>
+  <TouchableOpacity onPress={handleURL} style={styles.privacyButton}>
+    <Text style={styles.privacyText}>Privacy Policy</Text>
+  </TouchableOpacity>
+</View>
+
         </ScrollView>
     </SafeAreaView>
   )
@@ -63,6 +72,17 @@ const handellogout = () => {
 
 
 const styles = StyleSheet.create({
+  privacyButton: {
+    backgroundColor: '#191919',
+    padding: 10,
+    borderRadius: 10,
+    width: 150,
+    alignItems: 'center',
+  },
+  privacyText:{
+    color: 'white',
+    fontWeight: '500',
+  },
   comingsoon:{
     marginBottom:0,
     height:400,

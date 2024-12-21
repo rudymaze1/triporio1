@@ -433,7 +433,6 @@ const TripName = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with back button and title */}
       <View style={styles.title}>
         <TouchableOpacity style={styles.backButtonContainer} onPress={handleBack}>
           <Image
@@ -444,7 +443,7 @@ const TripName = () => {
         <Text style={styles.titleText}>{tripNameStr} Itinerary</Text>
       </View>
 
-      {/* List of days and activities */}
+
       <FlatList
         style={styles.itinar}
         data={dayGroups}
@@ -526,8 +525,9 @@ const styles = StyleSheet.create({
   container: {
     height:"110%",
     padding: 0,
-    backgroundColor: 'red',
+    backgroundColor: '#363dc1',
     bottom:0,
+
     
   },
   title: {
@@ -552,6 +552,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
+    color:"white",
   },
   itinar: {
     borderTopRightRadius:40,
@@ -617,33 +618,44 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    bottom:120,
   },
   modalContent: {
     width: '80%',
+    height:120,
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 30,
     elevation: 5,
   },
   input: {
+    top:10,
     borderBottomWidth: 1,
     marginBottom: 20,
     fontSize: 16,
   },
   addActivityButton: {
+    top:10,
     backgroundColor: 'blue',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   addActivityButtonText: {
     color: 'white',
     fontWeight: 'bold',
   },
-  cancelButton: {
+  cancelButton:{
+    left:200,
     alignItems: 'center',
+    bottom:150,
+    backgroundColor:"white",
+    width:80,
+    height:30,
+    padding:5,
+    borderRadius:30,
   },
   cancelButtonText: {
     color: 'red',

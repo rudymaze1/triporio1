@@ -34,7 +34,7 @@ const usePexelsSearch = () => {
         {
           params: {
             query,
-            per_page: 20, // Set the number of results per page
+            per_page: 25, // Set the number of results per page
             orientation:'landscape',
           },
           headers: {

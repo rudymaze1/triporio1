@@ -1278,7 +1278,7 @@ const renderRightActions = (id: string) => {
 
 
                 <TouchableOpacity style={{left:0,bottom:100}} onPress={openModal}>
-                <Ionicons name="search-circle" size={24} color="lightblue" />
+                <Ionicons name="search-circle" size={30} color="lightblue" />
                 </TouchableOpacity>
                 <Modal
                   visible={modalVisible}
@@ -1286,12 +1286,12 @@ const renderRightActions = (id: string) => {
                   transparent={true}
                   onRequestClose={closeModal}
                 >
-                  <View style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <View style={styles.modalContainer}>
-                      {/* Close Text */}
-                      <TouchableOpacity onPress={closeModal} style={styles.closebutton}>
-                        <Text style={styles.textInput}>Close</Text>
+                  <View style={{ backgroundColor: "rgba(0, 0, 0, 0.7)", flex: 1, justifyContent: "center", alignItems: "center" }}>
+                  <TouchableOpacity onPress={closeModal} style={styles.imgclosebutton}>
+                        <Ionicons name='close-circle' size={45} color={"white"}/>
                       </TouchableOpacity>
+
+                    <View style={styles.modalContainer}>
                       <ImageSearchComponent />
                     </View>
                   </View>
@@ -1341,7 +1341,7 @@ const renderRightActions = (id: string) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalContainer}>
+          <View style={styles.tripmodalContainer}>
             
             <Text style={styles.modalTitle}>Add a New Trip</Text>
             <TextInput
@@ -1353,9 +1353,6 @@ const renderRightActions = (id: string) => {
             <View style={styles.checkbox}>
                 <Checkbox value={isChecked} onValueChange={handleCheckBoxChange}/>
                 <Text style={styles.checkboxtext}>set as upcoming trip?</Text>
-                <TouchableOpacity onPress={openModal} style={styles.imagepick2}>
-                <Ionicons name="images-outline" size={24} color="lightblue" />
-                </TouchableOpacity>
 
             </View>
             
@@ -1401,6 +1398,13 @@ const renderRightActions = (id: string) => {
 
 
 const styles = StyleSheet.create({
+  imgclosebutton:{
+    bottom:190,
+    height:45,
+    left:130,
+    
+  },
+
   deleteButton: {
     right:0,
     top:30,
@@ -1420,7 +1424,7 @@ const styles = StyleSheet.create({
         position:"absolute",
         backgroundColor:"transparent",
         fontSize:55,
-         bottom:200,
+         bottom:130,
          color:"white",
          fontWeight:'bold',
          fontFamily:"poiret",
@@ -1434,18 +1438,21 @@ const styles = StyleSheet.create({
     },
     checkbox:{
         position:"fixed", 
-        right: 90,
+        right: 80,
         bottom:10
     },
    enddatetext:{
         fontWeight:"bold",
+        backgroundColor:"white",
+        left:10,
     },
     enddatebuttontext:{
-        padding: 12,
-        backgroundColor: '#f1f8e9',
+        backgroundColor: 'white',
         borderRadius: 8,
         alignItems: 'center',
         right:"30%",
+        paddingTop:10,
+        marginBottom:10,
 
     },
     datepickertext:{
@@ -1461,13 +1468,14 @@ const styles = StyleSheet.create({
 
     },
     startdatetext:{
-        right:"30%",
         fontWeight:"bold",
+        marginBottom:5,
+        right:85
     },
     closebutton:{
         position:"fixed",
         backgroundColor:"transparent",
-        bottom:"15%",
+        bottom:60,
         left:"40%",
     },
       tripDateText: {
@@ -1503,25 +1511,42 @@ const styles = StyleSheet.create({
         top:"50%",
     },
     modalWrapper: {
-      left:"5%",
       borderRadius:15,
-      top:"30%",
-      width:"90%",
-      backgroundColor: 'transparent', 
+      width:"100%",
       justifyContent: 'center',
       alignItems: 'center',
+      height:"100%",
+      elevation: 5, // Adds a shadow on Android
+      shadowColor: 'black', // Shadow on iOS
+      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker background for better modal focus
     },
     modalContainer: {
-        bottom:50,
-      width: "100%",
-      borderRadius: 15,
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      padding: 20,
       justifyContent: 'center',
       alignItems: 'center',
+        bottom:200,
+      width: "90%",
+      borderRadius: 15,
       elevation: 5, // Adds a shadow on Android
-      shadowColor: 'red', // Shadow on iOS
-      shadowOffset: { width: 0, height: 2 },
+      shadowColor: 'black', // Shadow on iOS
+      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      height:100,
+    },
+    tripmodalContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      bottom:50,
+      width: "90%",
+      borderRadius: 15,
+      backgroundColor: 'white',
+      padding:20,
+      elevation: 5, // Adds a shadow on Android
+      shadowColor: 'black', // Shadow on iOS
+      shadowOffset: { width: 0, height: 5 },
       shadowOpacity: 0.3,
       shadowRadius: 4,
     },
@@ -1552,7 +1577,7 @@ const styles = StyleSheet.create({
     },
         Howtouse:{
           fontWeight: "bold",
-          color: "grey",
+          color: "lightgrey",
           textAlign: 'center',  // Center the text horizontally
         },
         addbuttonimg:{
@@ -1623,16 +1648,23 @@ const styles = StyleSheet.create({
               backgroundColor: '#CBE4DE',
               justifyContent: 'center',
               alignItems: 'center',
-              borderTopRightRadius:65,
+              borderTopRightRadius:60,
               paddingBottom:"25%",
               bottom:50,
               borderTopLeftRadius:0,
+              shadowColor: '#000',
+              shadowOffset: { width: 20, height: 0.5 }, // Reduced shadow offset
+              shadowOpacity: 0.9,                    // Subtle opacity
+              shadowRadius: 15,                      // Blur radius
+            
+              // Shadow for Android
+              elevation: 10,   
               
             },
         upcomingcontainer: {
-            
              position:"fixed",
-              height: 450, 
+             paddingTop:0,
+              height: 300, 
               marginVertical: 0,
               backgroundColor: 'white',
               justifyContent: 'center',
@@ -1654,7 +1686,7 @@ const styles = StyleSheet.create({
             },
         subtitle: {
             fontFamily:"sulph-reg",
-            top:5,
+            top:1,
             right:130,
               position:"fixed",
               fontSize: 24,
@@ -1668,8 +1700,8 @@ const styles = StyleSheet.create({
             },
         imagepick2:{
             position:'fixed',
-            left:290,
-            bottom:30,
+            left:260,
+            bottom:25,
             marginBottom:-30,
             },
   

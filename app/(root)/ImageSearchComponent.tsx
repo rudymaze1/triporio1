@@ -94,6 +94,7 @@ import React from 'react';
 import { View, TextInput, Button, Modal, Text, FlatList, Image, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { FIREBASE_APP, FIREBASE_AUTH, FIREBASE_DB } from '@/config/firebaseconfig';
 import { addDoc, collection, Firestore, serverTimestamp } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
 
 const ImageSearchComponent = () => {
   const {
@@ -145,10 +146,11 @@ const ImageSearchComponent = () => {
         onChangeText={setSearchQuery}
         placeholder="Search for images"
       />
+      <TouchableOpacity style={styles.searchinput} >
+        <Ionicons name='search' size={30} color={"white"} onPress={handleSearch} disabled={loading2}/>
+      </TouchableOpacity>
 
-      <Button title="Search" onPress={handleSearch} disabled={loading2} />
-
-      {loading2 && <Text style={styles.loadingText}>Loading...</Text>}
+      {loading2 && <Text style={styles.loadingText}>...</Text>}
 
       <Modal
         visible={isImageSearchModalVisible}
@@ -159,20 +161,23 @@ const ImageSearchComponent = () => {
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-              <Text style={styles.closeText}>Close</Text>
+              <Ionicons name='close-circle' size={45} color={"white"}/>
             </TouchableOpacity>
 
             <FlatList
               data={pexelsImages}
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => handleImageSelect(item.src.medium)}>
+                 
+
+                    
                   <View style={styles.imageContainer}>
-                    <Text style={styles.imageDescription}>{item.alt}</Text>
                     <Image source={{ uri: item.src.medium }} style={styles.image} />
                   </View>
                 </TouchableOpacity>
               )}
               keyExtractor={(item) => item.id.toString()}
+              numColumns={2}
             />
           </View>
         </View>
@@ -182,64 +187,96 @@ const ImageSearchComponent = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    height:300,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 20,
-    paddingLeft: 8,
-    borderRadius: 5,
-  },
-  loadingText: {
-    textAlign: 'center',
-    marginVertical: 10,
-    fontSize: 16,
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    width: '90%',
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
-  closeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'red',
-  },
-  imageContainer: {
-    width: '100%',
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  imageDescription: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  image: {
-    width: 250,
-    height: 250,
-    resizeMode: 'cover',
-    borderRadius: 10,
-  },
+    searchinput:{
+        left:150,
+    },
+    container: {
+        top:20,
+        height:60,
+        width:350,
+        justifyContent: 'center',
+        alignItems: 'center', // Ensures the content is centered
+        paddingBottom: 2, // Minimal padding at the bottom
+        backgroundColor: 'lightgrey', // Light background color for contrast
+        borderRadius: 40, // Slightly rounded corners
+        elevation: 2, // Small shadow effect for Android
+        shadowColor: '#ccc', // Light shadow for iOS
+        shadowOffset: { width: 0, height: 1 }, // Subtle shadow offset
+        shadowOpacity: 0.2, // Light opacity for shadow
+        shadowRadius: 3, // Small radius for a soft shadow
+      },
+      
+      input: {
+        bottom:10,
+        left:10,
+        height:40,
+        width:280,
+        position:'absolute',
+        borderColor: 'lightgrey', // Lighter border color for a cleaner look
+        borderWidth: 1,
+        borderRadius: 30, // Rounded corners for a soft look
+        paddingHorizontal: 10, // Adds padding inside the input field
+        backgroundColor: 'white', // Light background for the input field
+        fontSize: 16, // Slightly larger text for better readability
+      },
+      
+      loadingText: {
+        textAlign: 'center',
+        marginVertical: 5, // Reduced vertical margin for a compact layout
+        fontSize: 14, // Smaller font size for the loading text
+        color: '#555', // Softer color for better legibility
+        bottom:10
+      },
+      
+      modalBackground: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker background for better modal focus
+      },
+      
+      modalContainer: {
+        top:100,
+        width: '100%', // Narrower modal container for a thinner appearance
+        maxHeight: '80%', // Limits the height of the modal for a compact view
+        backgroundColor: '#fff', // White background for the modal
+        borderRadius: 12, // Rounded corners for a smoother look
+        elevation: 8, // Elevated shadow for better visibility
+        shadowColor: '#000', // Dark shadow for better contrast
+        shadowOffset: { width: 0, height: 3 }, // Increased shadow offset for better depth
+        shadowOpacity: 0.3, // Slightly darker shadow opacity
+        shadowRadius: 5, // Slightly larger radius for a softer shadow
+      },
+      
+      closeButton: {
+        position: 'absolute',
+        right: 45, // Positioned on the right side of the modal
+        bottom:580,
+        backgroundColor: 'transparent', // Transparent background for the close button
+        padding: 1, // Padding around the button for easier interaction
+        borderRadius:40,
+
+
+      },
+      
+      closeText: {
+        fontSize: 16, // Slightly smaller font size for the close button
+        fontWeight: 'bold',
+        color: '#ff4d4d', // Softer red for the close button
+      },
+      
+      imageContainer: {
+        margin:2,
+        height:150,
+        width: '100%',
+        alignItems: 'center', // Ensures the image is centered
+      },
+      image: {
+        width: 190, // Slightly smaller image width
+        height:"100%", // Slightly smaller height for a more compact image
+        resizeMode: 'contain',
+        borderRadius: 15, // Rounded corners for the image
+
+      },
 });
 
 export default ImageSearchComponent;
