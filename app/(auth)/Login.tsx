@@ -112,6 +112,7 @@
 
 
 import { FIREBASE_AUTH } from "@/config/firebaseconfig";
+import { registerForPushNotificationAsync } from "@/utils/notificationservice";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -133,9 +134,21 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+      const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
       router.replace("/[home]");
-      console.log("Login successful");
+      console.log("Login successful", userCredential.user);
+
+
+      
+      //get push notification Token
+      const pushToken = await registerForPushNotificationAsync()
+      if (pushToken){
+        console.log("user push token:", pushToken)
+      }
+
+
+
+
     } catch (error) {
       console.error("Error logging in", error);
       alert("Login failed. Check your credentials.");
