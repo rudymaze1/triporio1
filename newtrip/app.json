@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "triprio1",
-    "slug": "triprio1",
+    "name": "newtrip",
+    "slug": "newtrip",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -42,7 +42,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "fa144424-9dcd-4e76-b1c1-cb0e047a25ae"
+        "projectId": "30476831-d9c7-4fd2-9ad9-875ec1e954ab"
       }
     },
     "owner": "rudymaze",
@@ -50,7 +50,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/fa144424-9dcd-4e76-b1c1-cb0e047a25ae"
+      "url": "https://u.expo.dev/30476831-d9c7-4fd2-9ad9-875ec1e954ab"
     }
   }
 }

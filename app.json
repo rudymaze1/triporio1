@@ -1,12 +1,13 @@
 {
   "expo": {
-    "name": "trip.orio",
-    "slug": "triporio",
+    "name": "trip.rio",
+    "slug": "triprio1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "projectId": "fa144424-9dcd-4e76-b1c1-cb0e047a25ae",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -45,8 +46,13 @@
         "origin": false
       },
       "eas": {
-        "projectId": "63a0911b-7528-4594-935d-abcf321d3939"
+        "projectId": "fa144424-9dcd-4e76-b1c1-cb0e047a25ae"
       }
+    },
+    "owner": "rudymaze",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/fa144424-9dcd-4e76-b1c1-cb0e047a25ae"
     }
   }
 }

@@ -503,9 +503,9 @@ const TripName = () => {
       </Modal>
 
       {/* Button to add a new day */}
-      <View style={{ bottom: 170, position:'absolute', right:30  }}>
+      <View style={{ bottom: 150, position:'absolute', right:30  }}>
         <TouchableOpacity onPress={handleAddDay}>
-          <Ionicons name='add-circle' size={45} color={"blue"}/>
+          <Ionicons name='add-circle' size={55} color={"#2a74d5"}/>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -615,11 +615,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalContainer: {
-    flex: 1,
+    height:"100%",
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    bottom:120,
+    bottom:0,
   },
   modalContent: {
     width: '80%',

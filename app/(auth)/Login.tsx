@@ -132,28 +132,50 @@ const LoginScreen = () => {
   const [password, setPassword] = useState(""); 
   const router = useRouter();
 
-  const handleLogin = async () => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      router.replace("/[home]");
-      console.log("Login successful", userCredential.user);
+  // const handleLogin = async () => {
+  //   try {
+  //     const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+  //     router.replace("/[home]");
+  //     console.log("Login successful", userCredential.user);
 
 
       
-      //get push notification Token
-      const pushToken = await registerForPushNotificationAsync()
-      if (pushToken){
-        console.log("user push token:", pushToken)
-      }
+  //     //get push notification Token
+  //     const pushToken = await registerForPushNotificationAsync()
+  //     if (pushToken){
+  //       console.log("user push token:", pushToken)
+  //     }
 
 
 
 
+  //   } catch (error) {
+  //     console.error("Error logging in", error);
+  //     alert("Login failed. Check your credentials.");
+  //   }
+  // };
+
+
+  const handleLogin = async () => {
+    try {
+        // Log in the user
+        const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+        console.log("Login successful", userCredential.user);
+        router.replace("/[home]");
+
+        // Request notification permissions and register for push notifications
+        const pushToken = await registerForPushNotificationAsync();
+        if (pushToken) {
+            console.log("Push notification token:", pushToken);
+            // You can save the push token to your backend or local storage
+        } else {
+            console.log("Notification permissions not granted.");
+        }
     } catch (error) {
-      console.error("Error logging in", error);
-      alert("Login failed. Check your credentials.");
+        console.error("Error logging in", error);
+        alert("Login failed. Check your credentials.");
     }
-  };
+};
 
   const carouselItems: CarouselItem[] = [
     { id: "1", image: require("../../assets/images/new1.png") },
